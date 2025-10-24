@@ -256,7 +256,7 @@ namespace Shooter
             if (!_gameOver)
             {
                 // Score with large font (during gameplay)
-                _spriteBatch.DrawString(_fontLarge, $"Score: {_score}", new Vector2(20, 20), Color.White);
+                _spriteBatch.DrawString(_fontLarge, _score.ToString(), new Vector2(20, 20), Color.White);
                 
                 // Lives with heart graphics
                 var heartSize = 40;
