@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Shooter.Entities;
@@ -23,13 +24,15 @@ namespace Shooter.Managers
         private Rectangle _screenBounds;
         private Random _random;
         private BulletManager _bulletManager;
+        private SoundEffect _enemyShootSound;
 
-        public EnemyManager(ContentManager content, Rectangle bounds, BulletManager bulletManager)
+        public EnemyManager(ContentManager content, Rectangle bounds, BulletManager bulletManager, SoundEffect enemyShootSound)
         {
             _enemies = new List<Enemy>();
             _random = new Random();
             _screenBounds = bounds;
             _bulletManager = bulletManager;
+            _enemyShootSound = enemyShootSound;
             
             _basicEnemyTexture = content.Load<Texture2D>("enemy_basic");
             _fastEnemyTexture = content.Load<Texture2D>("enemy_fast");
@@ -61,6 +64,7 @@ namespace Shooter.Managers
                     // Spawn bullets below the enemy (ahead as they move down)
                     var bulletSpawnPos = new Vector2(enemy.Position.X, enemy.Position.Y + enemy.Texture.Height / 2 + 10);
                     _bulletManager.AddEnemyBullet(bulletSpawnPos);
+                    _enemyShootSound.Play();
                     enemy.ResetShootTimer(_random);
                 }
                 

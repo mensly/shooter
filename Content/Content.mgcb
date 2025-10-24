@@ -71,3 +71,23 @@
 /processor:TextureProcessor
 /build:heart.png
 
+#begin shoot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:shoot.wav
+
+#begin explosion.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:explosion.wav
+
+#begin hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:hit.wav
+
+#begin enemy_shoot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:enemy_shoot.wav
+

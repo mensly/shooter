@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shooter.Entities;
@@ -23,6 +24,11 @@ namespace Shooter
         
         private SpriteFont _font;
         private SpriteFont _fontLarge;
+        
+        private SoundEffect _shootSound;
+        private SoundEffect _explosionSound;
+        private SoundEffect _hitSound;
+        private SoundEffect _enemyShootSound;
         private int _score;
         private int _lives;
         private bool _gameOver;
@@ -77,6 +83,12 @@ namespace Shooter
             _fontLarge = Content.Load<SpriteFont>("font_large");
             _heartTexture = Content.Load<Texture2D>("heart");
             
+            // Load sound effects
+            _shootSound = Content.Load<SoundEffect>("shoot");
+            _explosionSound = Content.Load<SoundEffect>("explosion");
+            _hitSound = Content.Load<SoundEffect>("hit");
+            _enemyShootSound = Content.Load<SoundEffect>("enemy_shoot");
+            
             _backgroundManager = new BackgroundManager(_gameBounds);
             
             // Create a simple star texture
@@ -90,9 +102,9 @@ namespace Shooter
             
             _bulletManager = new BulletManager(_gameBounds);
             _bulletManager.LoadContent(Content);
-            _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager);
+            _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager, _enemyShootSound);
             
-            _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player);
+            _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player, _explosionSound, _hitSound);
             _collisionManager.OnEnemyHit += OnEnemyHit;
             _collisionManager.OnPlayerHit += OnPlayerHit;
             
@@ -132,6 +144,7 @@ namespace Shooter
                 if (IsShooting(keyboardState, gamePadState, _previousKeyboardState, _previousGamePadState))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
+                    _shootSound.Play();
                 }
                 
                 // Collision detection
