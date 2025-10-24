@@ -19,16 +19,12 @@ namespace Shooter
         private BulletManager _bulletManager;
         private BackgroundManager _backgroundManager;
         private CollisionManager _collisionManager;
+        private SoundManager _soundManager;
         private Texture2D _starTexture;
         private Texture2D _heartTexture;
         
         private SpriteFont _font;
         private SpriteFont _fontLarge;
-        
-        private SoundEffect _shootSound;
-        private SoundEffect _explosionSound;
-        private SoundEffect _hitSound;
-        private SoundEffect _enemyShootSound;
         private int _score;
         private int _lives;
         private bool _gameOver;
@@ -83,11 +79,9 @@ namespace Shooter
             _fontLarge = Content.Load<SpriteFont>("font_large");
             _heartTexture = Content.Load<Texture2D>("heart");
             
-            // Load sound effects
-            _shootSound = Content.Load<SoundEffect>("shoot");
-            _explosionSound = Content.Load<SoundEffect>("explosion");
-            _hitSound = Content.Load<SoundEffect>("hit");
-            _enemyShootSound = Content.Load<SoundEffect>("enemy_shoot");
+            // Initialize sound manager
+            _soundManager = new SoundManager();
+            _soundManager.LoadContent(Content);
             
             _backgroundManager = new BackgroundManager(_gameBounds);
             
@@ -102,9 +96,9 @@ namespace Shooter
             
             _bulletManager = new BulletManager(_gameBounds);
             _bulletManager.LoadContent(Content);
-            _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager, _enemyShootSound);
+            _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager, _soundManager);
             
-            _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player, _explosionSound, _hitSound);
+            _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player, _soundManager);
             _collisionManager.OnEnemyHit += OnEnemyHit;
             _collisionManager.OnPlayerHit += OnPlayerHit;
             
@@ -144,7 +138,7 @@ namespace Shooter
                 if (IsShooting(keyboardState, gamePadState, _previousKeyboardState, _previousGamePadState))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
-                    _shootSound.Play();
+                    _soundManager.PlayShoot();
                 }
                 
                 // Collision detection
