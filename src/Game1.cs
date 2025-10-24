@@ -228,11 +228,11 @@ namespace Shooter
             
             // Lives with heart graphics
             var heartSize = 40;
-            var livesY = 20;
+            var livesY = 100; // Increased gap between score and lives
             for (int i = 0; i < _lives; i++)
             {
                 _spriteBatch.Draw(_heartTexture, 
-                    new Rectangle(20 + i * (heartSize + 10), livesY + 60, heartSize, heartSize), 
+                    new Rectangle(20 + i * (heartSize + 10), livesY, heartSize, heartSize), 
                     Color.White);
             }
             
