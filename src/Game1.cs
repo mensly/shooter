@@ -19,8 +19,10 @@ namespace Shooter
         private BackgroundManager _backgroundManager;
         private CollisionManager _collisionManager;
         private Texture2D _starTexture;
+        private Texture2D _heartTexture;
         
         private SpriteFont _font;
+        private SpriteFont _fontLarge;
         private int _score;
         private int _lives;
         private bool _gameOver;
@@ -64,6 +66,8 @@ namespace Shooter
             _playerSpawnPosition = new Vector2(GameWidth / 2, GameHeight - PlayerSpawnY);
             
             _font = Content.Load<SpriteFont>("font");
+            _fontLarge = Content.Load<SpriteFont>("font_large");
+            _heartTexture = Content.Load<Texture2D>("heart");
             
             _backgroundManager = new BackgroundManager(_gameBounds);
             
@@ -219,8 +223,18 @@ namespace Shooter
             }
             
             // UI (render to game resolution)
-            _spriteBatch.DrawString(_font, $"Score: {_score}", new Vector2(10, 10), Color.White);
-            _spriteBatch.DrawString(_font, $"Lives: {_lives}", new Vector2(10, 40), Color.White);
+            // Score with large font
+            _spriteBatch.DrawString(_fontLarge, $"Score: {_score}", new Vector2(20, 20), Color.White);
+            
+            // Lives with heart graphics
+            var heartSize = 40;
+            var livesY = 20;
+            for (int i = 0; i < _lives; i++)
+            {
+                _spriteBatch.Draw(_heartTexture, 
+                    new Rectangle(20 + i * (heartSize + 10), livesY + 60, heartSize, heartSize), 
+                    Color.White);
+            }
             
             if (_gameOver)
             {

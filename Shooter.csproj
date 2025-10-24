@@ -16,11 +16,5 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Content\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
 

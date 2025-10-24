@@ -16,6 +16,11 @@
 /processor:FontDescriptionProcessor
 /build:font.spritefont
 
+#begin font_large.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:font_large.spritefont
+
 #begin player.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -60,4 +65,9 @@
 /importer:TextureImporter
 /processor:TextureProcessor
 /build:bullet_enemy.png
+
+#begin heart.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:heart.png
 
