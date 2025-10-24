@@ -94,5 +94,5 @@ All game assets are procedurally generated PNG files:
 - `bullet_player.png` - Player bullets (yellow tipped)
 - `bullet_enemy.png` - Enemy bullets (red tipped)
 
-**Note:** The `run_game.sh` script automatically builds the MonoGame content (compiles `.png` and `.spritefont` files into `.xnb` format) and copies them to the output directory.
+**Note:** The `run_game.sh` script automatically builds the MonoGame content (compiles `.png` and `.spritefont` files into `.xnb` format) and copies them to the output directory. Content is built to the `build/` directory to keep the source `Content/` directory clean.
 
