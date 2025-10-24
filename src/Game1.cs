@@ -113,10 +113,10 @@ namespace Shooter
                 keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
+            var gamePadState = GamePad.GetState(PlayerIndex.One);
+            
             if (!_gameOver)
             {
-                var gamePadState = GamePad.GetState(PlayerIndex.One);
-                
                 _backgroundManager.Update(gameTime);
                 _player.Update(gameTime, keyboardState, gamePadState);
                 _enemyManager.Update(gameTime);
@@ -127,8 +127,6 @@ namespace Shooter
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
                 }
-                
-                _previousGamePadState = gamePadState;
                 
                 // Collision detection
                 _collisionManager.Update();
@@ -141,11 +139,15 @@ namespace Shooter
             }
             else
             {
-                if (keyboardState.IsKeyDown(Keys.R))
+                // Check for restart (keyboard or gamepad)
+                if (keyboardState.IsKeyDown(Keys.R) || 
+                    (gamePadState.IsButtonDown(Buttons.Start) && !_previousGamePadState.IsButtonDown(Buttons.Start)))
                 {
                     RestartGame();
                 }
             }
+            
+            _previousGamePadState = gamePadState;
 
             base.Update(gameTime);
         }
@@ -236,32 +238,46 @@ namespace Shooter
             }
             
             // UI (render to game resolution)
-            // Score with large font
-            _spriteBatch.DrawString(_fontLarge, $"Score: {_score}", new Vector2(20, 20), Color.White);
-            
-            // Lives with heart graphics
-            var heartSize = 40;
-            var livesY = 100; // Increased gap between score and lives
-            for (int i = 0; i < _lives; i++)
+            if (!_gameOver)
             {
-                _spriteBatch.Draw(_heartTexture, 
-                    new Rectangle(20 + i * (heartSize + 10), livesY, heartSize, heartSize), 
-                    Color.White);
+                // Score with large font (during gameplay)
+                _spriteBatch.DrawString(_fontLarge, $"Score: {_score}", new Vector2(20, 20), Color.White);
+                
+                // Lives with heart graphics
+                var heartSize = 40;
+                var livesY = 100; // Increased gap between score and lives
+                for (int i = 0; i < _lives; i++)
+                {
+                    _spriteBatch.Draw(_heartTexture, 
+                        new Rectangle(20 + i * (heartSize + 10), livesY, heartSize, heartSize), 
+                        Color.White);
+                }
             }
-            
-            if (_gameOver)
+            else
             {
+                // Game over screen with centered score
                 var gameOverText = "GAME OVER";
-                var restartText = "Press R to Restart";
-                var textSize = _font.MeasureString(gameOverText);
+                var scoreText = $"Final Score: {_score}";
+                var restartText = "Press R or Start to Restart";
+                
+                var gameOverSize = _font.MeasureString(gameOverText);
+                var scoreSize = _fontLarge.MeasureString(scoreText);
                 var restartSize = _font.MeasureString(restartText);
                 
+                // Game Over text
                 _spriteBatch.DrawString(_font, gameOverText, 
-                    new Vector2(GameWidth / 2 - textSize.X / 2, 
-                    GameHeight / 2 - 50), Color.Red);
+                    new Vector2(GameWidth / 2 - gameOverSize.X / 2, 
+                    GameHeight / 2 - 100), Color.Red);
+                
+                // Final Score with large font, centered
+                _spriteBatch.DrawString(_fontLarge, scoreText, 
+                    new Vector2(GameWidth / 2 - scoreSize.X / 2, 
+                    GameHeight / 2 - 20), Color.White);
+                
+                // Restart text
                 _spriteBatch.DrawString(_font, restartText, 
                     new Vector2(GameWidth / 2 - restartSize.X / 2, 
-                    GameHeight / 2 + 20), Color.White);
+                    GameHeight / 2 + 80), Color.Yellow);
             }
             
             _spriteBatch.End();
