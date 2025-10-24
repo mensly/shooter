@@ -28,8 +28,8 @@ namespace Shooter
         private bool _gameOver;
         
         // Fixed resolution for gameplay
-        private const int GameWidth = 1920;
-        private const int GameHeight = 1080;
+        private const int GameWidth = 1280;
+        private const int GameHeight = 720;
         private const int PlayerSpawnY = 130; // Distance from bottom of screen
         private const int InitialLives = 3;
         
