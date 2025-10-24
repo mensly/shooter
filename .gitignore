@@ -21,3 +21,6 @@ Content/obj/
 .DS_Store
 Thumbs.db
 
+# IDE
+.cursor/
+
