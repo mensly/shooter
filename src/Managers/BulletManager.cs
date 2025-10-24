@@ -12,14 +12,16 @@ namespace Shooter.Managers
         private List<Bullet> _enemyBullets;
         private Texture2D _playerBulletTexture;
         private Texture2D _enemyBulletTexture;
+        private readonly Rectangle _bounds;
 
         public IEnumerable<Bullet> PlayerBullets => _playerBullets.Where(b => b.IsActive);
         public IEnumerable<Bullet> EnemyBullets => _enemyBullets.Where(b => b.IsActive);
 
-        public BulletManager()
+        public BulletManager(Rectangle bounds)
         {
             _playerBullets = new List<Bullet>();
             _enemyBullets = new List<Bullet>();
+            _bounds = bounds;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -34,13 +36,13 @@ namespace Shooter.Managers
             var activeBullets = _playerBullets.Count(b => b.IsActive);
             if (activeBullets < 5)
             {
-                _playerBullets.Add(new Bullet(_playerBulletTexture, position, true));
+                _playerBullets.Add(new Bullet(_playerBulletTexture, position, true, _bounds));
             }
         }
 
         public void AddEnemyBullet(Vector2 position)
         {
-            _enemyBullets.Add(new Bullet(_enemyBulletTexture, position, false));
+            _enemyBullets.Add(new Bullet(_enemyBulletTexture, position, false, _bounds));
         }
 
         public void Update(GameTime gameTime)

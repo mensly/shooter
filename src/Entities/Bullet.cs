@@ -7,13 +7,15 @@ namespace Shooter.Entities
     {
         public bool IsActive { get; set; }
         public bool IsPlayerBullet { get; set; }
+        private readonly Rectangle _bounds;
 
-        public Bullet(Texture2D texture, Vector2 position, bool isPlayerBullet) : base(texture)
+        public Bullet(Texture2D texture, Vector2 position, bool isPlayerBullet, Rectangle bounds) : base(texture)
         {
             Position = position;
             IsPlayerBullet = isPlayerBullet;
             IsActive = true;
             Speed = isPlayerBullet ? 500f : 300f;
+            _bounds = bounds;
         }
 
         public void Update(GameTime gameTime)
@@ -25,7 +27,7 @@ namespace Shooter.Entities
             Position += new Vector2(0, Speed * direction * deltaTime);
 
             // Deactivate if off screen
-            if (Position.Y < -Texture.Height || Position.Y > 800)
+            if (Position.Y < -Texture.Height || Position.Y > _bounds.Height + Texture.Height)
             {
                 IsActive = false;
             }

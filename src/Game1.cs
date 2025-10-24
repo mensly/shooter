@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shooter.Entities;
 using Shooter.Managers;
+using System;
 using System.Collections.Generic;
 
 namespace Shooter
@@ -22,6 +23,14 @@ namespace Shooter
         private int _score;
         private int _lives;
         private bool _gameOver;
+        
+        // Fixed resolution for gameplay
+        private const int GameWidth = 1920;
+        private const int GameHeight = 1080;
+        private RenderTarget2D _renderTarget;
+        private Rectangle _gameBounds;
+        private bool _fullscreen;
+        private KeyboardState _previousKeyboardState;
 
         public Game1()
         {
@@ -32,8 +41,9 @@ namespace Shooter
 
         protected override void Initialize()
         {
-            _graphics.PreferredBackBufferWidth = 1024;
-            _graphics.PreferredBackBufferHeight = 768;
+            // Set larger window size (maintaining 16:9 aspect ratio)
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 720;
             _graphics.ApplyChanges();
             
             base.Initialize();
@@ -43,38 +53,57 @@ namespace Shooter
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             
+            // Create render target for fixed resolution gameplay
+            _renderTarget = new RenderTarget2D(GraphicsDevice, GameWidth, GameHeight);
+            _gameBounds = new Rectangle(0, 0, GameWidth, GameHeight);
+            
             _font = Content.Load<SpriteFont>("font");
             
-            _backgroundManager = new BackgroundManager(GraphicsDevice.Viewport.Bounds);
+            _backgroundManager = new BackgroundManager(_gameBounds);
             
             // Create a simple star texture
             _starTexture = new Texture2D(GraphicsDevice, 1, 1);
             _starTexture.SetData(new[] { Color.White });
             
-            _player = new Player(Content.Load<Texture2D>("player"))
+            _player = new Player(Content.Load<Texture2D>("player"), _gameBounds)
             {
-                Position = new Vector2(512, 650)
+                Position = new Vector2(GameWidth / 2, GameHeight - 130)
             };
             
-            _enemyManager = new EnemyManager(Content);
-            _bulletManager = new BulletManager();
+            _enemyManager = new EnemyManager(Content, _gameBounds);
+            _bulletManager = new BulletManager(_gameBounds);
             _bulletManager.LoadContent(Content);
             
             _score = 0;
             _lives = 3;
             _gameOver = false;
+            
+            _previousKeyboardState = SubscribeToKeyboard();
+            _fullscreen = false;
+        }
+        
+        private KeyboardState SubscribeToKeyboard()
+        {
+            return Keyboard.GetState();
         }
 
         protected override void Update(GameTime gameTime)
         {
+            var keyboardState = Keyboard.GetState();
+            
+            // Handle F11 fullscreen toggle
+            if (keyboardState.IsKeyDown(Keys.F11) && !_previousKeyboardState.IsKeyDown(Keys.F11))
+            {
+                ToggleFullscreen();
+            }
+            _previousKeyboardState = keyboardState;
+            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || 
-                Keyboard.GetState().IsKeyDown(Keys.Escape))
+                keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
             if (!_gameOver)
             {
-                var keyboardState = Keyboard.GetState();
-                
                 _backgroundManager.Update(gameTime);
                 _player.Update(gameTime, keyboardState);
                 _enemyManager.Update(gameTime);
@@ -99,18 +128,18 @@ namespace Shooter
                     }
                     else
                     {
-                        _player.Position = new Vector2(512, 650);
+                        _player.Position = new Vector2(GameWidth / 2, GameHeight - 130);
                     }
                 }
             }
             else
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.R))
+                if (keyboardState.IsKeyDown(Keys.R))
                 {
                     _score = 0;
                     _lives = 3;
                     _gameOver = false;
-                    _player.Position = new Vector2(512, 650);
+                    _player.Position = new Vector2(GameWidth / 2, GameHeight - 130);
                     _enemyManager.Reset();
                     _bulletManager.Reset();
                 }
@@ -151,8 +180,31 @@ namespace Shooter
             }
         }
 
+        private void ToggleFullscreen()
+        {
+            _fullscreen = !_fullscreen;
+            
+            if (_fullscreen)
+            {
+                // Get display resolution
+                _graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                _graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                _graphics.IsFullScreen = true;
+            }
+            else
+            {
+                _graphics.PreferredBackBufferWidth = 1280;
+                _graphics.PreferredBackBufferHeight = 720;
+                _graphics.IsFullScreen = false;
+            }
+            
+            _graphics.ApplyChanges();
+        }
+        
         protected override void Draw(GameTime gameTime)
         {
+            // Set render target to our fixed resolution buffer
+            GraphicsDevice.SetRenderTarget(_renderTarget);
             GraphicsDevice.Clear(Color.Black);
 
             _spriteBatch.Begin();
@@ -166,7 +218,7 @@ namespace Shooter
                 _bulletManager.Draw(_spriteBatch);
             }
             
-            // UI
+            // UI (render to game resolution)
             _spriteBatch.DrawString(_font, $"Score: {_score}", new Vector2(10, 10), Color.White);
             _spriteBatch.DrawString(_font, $"Lives: {_lives}", new Vector2(10, 40), Color.White);
             
@@ -178,12 +230,34 @@ namespace Shooter
                 var restartSize = _font.MeasureString(restartText);
                 
                 _spriteBatch.DrawString(_font, gameOverText, 
-                    new Vector2(GraphicsDevice.Viewport.Width / 2 - textSize.X / 2, 
-                    GraphicsDevice.Viewport.Height / 2 - 50), Color.Red);
+                    new Vector2(GameWidth / 2 - textSize.X / 2, 
+                    GameHeight / 2 - 50), Color.Red);
                 _spriteBatch.DrawString(_font, restartText, 
-                    new Vector2(GraphicsDevice.Viewport.Width / 2 - restartSize.X / 2, 
-                    GraphicsDevice.Viewport.Height / 2 + 20), Color.White);
+                    new Vector2(GameWidth / 2 - restartSize.X / 2, 
+                    GameHeight / 2 + 20), Color.White);
             }
+            
+            _spriteBatch.End();
+            
+            // Now draw the render target to the screen, scaled to fit
+            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.Clear(Color.Black);
+            
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+            
+            // Calculate the scale to fit the screen while maintaining aspect ratio
+            float scaleX = (float)GraphicsDevice.Viewport.Width / GameWidth;
+            float scaleY = (float)GraphicsDevice.Viewport.Height / GameHeight;
+            float scale = Math.Min(scaleX, scaleY);
+            
+            // Calculate centered position
+            int scaledWidth = (int)(GameWidth * scale);
+            int scaledHeight = (int)(GameHeight * scale);
+            int offsetX = (GraphicsDevice.Viewport.Width - scaledWidth) / 2;
+            int offsetY = (GraphicsDevice.Viewport.Height - scaledHeight) / 2;
+            
+            Rectangle destinationRect = new Rectangle(offsetX, offsetY, scaledWidth, scaledHeight);
+            _spriteBatch.Draw(_renderTarget, destinationRect, Color.White);
             
             _spriteBatch.End();
 

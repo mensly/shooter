@@ -8,10 +8,10 @@ namespace Shooter.Entities
     {
         private readonly Rectangle _screenBounds;
         
-        public Player(Texture2D texture) : base(texture)
+        public Player(Texture2D texture, Rectangle bounds) : base(texture)
         {
             Speed = 300f;
-            _screenBounds = new Rectangle(0, 0, 1024, 768);
+            _screenBounds = bounds;
         }
 
         public void Update(GameTime gameTime, KeyboardState keyboardState)

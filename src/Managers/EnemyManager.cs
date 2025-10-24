@@ -19,11 +19,11 @@ namespace Shooter.Managers
         private Rectangle _screenBounds;
         private Random _random;
 
-        public EnemyManager(ContentManager content)
+        public EnemyManager(ContentManager content, Rectangle bounds)
         {
             _enemies = new List<Enemy>();
             _random = new Random();
-            _screenBounds = new Rectangle(0, 0, 1024, 768);
+            _screenBounds = bounds;
             
             _basicEnemyTexture = content.Load<Texture2D>("enemy_basic");
             _fastEnemyTexture = content.Load<Texture2D>("enemy_fast");
