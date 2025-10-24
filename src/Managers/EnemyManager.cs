@@ -22,12 +22,14 @@ namespace Shooter.Managers
         private float _spawnTimer;
         private Rectangle _screenBounds;
         private Random _random;
+        private BulletManager _bulletManager;
 
-        public EnemyManager(ContentManager content, Rectangle bounds)
+        public EnemyManager(ContentManager content, Rectangle bounds, BulletManager bulletManager)
         {
             _enemies = new List<Enemy>();
             _random = new Random();
             _screenBounds = bounds;
+            _bulletManager = bulletManager;
             
             _basicEnemyTexture = content.Load<Texture2D>("enemy_basic");
             _fastEnemyTexture = content.Load<Texture2D>("enemy_fast");
@@ -53,6 +55,15 @@ namespace Shooter.Managers
             {
                 enemy.Update(gameTime, _screenBounds);
                 
+                // Handle enemy shooting
+                if (enemy.CanShoot())
+                {
+                    // Spawn bullets below the enemy (ahead as they move down)
+                    var bulletSpawnPos = new Vector2(enemy.Position.X, enemy.Position.Y + enemy.Texture.Height / 2 + 10);
+                    _bulletManager.AddEnemyBullet(bulletSpawnPos);
+                    enemy.ResetShootTimer(_random);
+                }
+                
                 // Remove enemy if off screen
                 if (enemy.Position.Y > _screenBounds.Height + 50)
                 {
@@ -77,7 +88,7 @@ namespace Shooter.Managers
                 _ => _basicEnemyTexture
             };
             
-            _enemies.Add(new Enemy(texture, enemyType, new Vector2(randX, -50)));
+            _enemies.Add(new Enemy(texture, enemyType, new Vector2(randX, -50), _random));
         }
 
         public Enemy CheckBulletCollision(Rectangle bulletBounds)

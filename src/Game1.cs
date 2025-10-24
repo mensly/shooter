@@ -80,9 +80,9 @@ namespace Shooter
                 Position = _playerSpawnPosition
             };
             
-            _enemyManager = new EnemyManager(Content, _gameBounds);
             _bulletManager = new BulletManager(_gameBounds);
             _bulletManager.LoadContent(Content);
+            _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager);
             
             _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player);
             _collisionManager.OnEnemyHit += OnEnemyHit;

@@ -26,7 +26,7 @@ namespace Shooter.Entities
         private float _zigzagOffset;
         private float _zigzagStartX;
 
-        public Enemy(Texture2D texture, EnemyType type, Vector2 position) : base(texture)
+        public Enemy(Texture2D texture, EnemyType type, Vector2 position, Random random) : base(texture)
         {
             Type = type;
             Position = position;
@@ -38,22 +38,22 @@ namespace Shooter.Entities
                 case EnemyType.Basic:
                     Speed = 100f;
                     ScoreValue = 10;
-                    ShootCooldown = 2.0f;
+                    ShootCooldown = 4.0f + (float)random.NextDouble() * 2.0f; // 4-6 seconds
                     break;
                 case EnemyType.Fast:
                     Speed = 200f;
                     ScoreValue = 20;
-                    ShootCooldown = 1.5f;
+                    ShootCooldown = 3.0f + (float)random.NextDouble() * 2.0f; // 3-5 seconds
                     break;
                 case EnemyType.Tank:
                     Speed = 50f;
                     ScoreValue = 50;
-                    ShootCooldown = 3.0f;
+                    ShootCooldown = 5.0f + (float)random.NextDouble() * 3.0f; // 5-8 seconds
                     break;
                 case EnemyType.Zigzag:
                     Speed = 120f;
                     ScoreValue = 25;
-                    ShootCooldown = 2.5f;
+                    ShootCooldown = 4.0f + (float)random.NextDouble() * 2.0f; // 4-6 seconds
                     ZigzagSpeed = 150f;
                     ZigzagDistance = 300f;
                     break;
@@ -65,11 +65,12 @@ namespace Shooter.Entities
                 case EnemyType.Shooter:
                     Speed = 80f;
                     ScoreValue = 30;
-                    ShootCooldown = 1.0f;
+                    ShootCooldown = 2.0f + (float)random.NextDouble() * 1.5f; // 2-3.5 seconds
                     break;
             }
             
-            ShootTimer = ShootCooldown;
+            // Random initial timer so enemies don't all shoot at once
+            ShootTimer = ShootCooldown * (0.3f + (float)random.NextDouble() * 0.7f);
         }
 
         public void Update(GameTime gameTime, Rectangle bounds)
@@ -114,9 +115,11 @@ namespace Shooter.Entities
             return ShootTimer <= 0;
         }
 
-        public void ResetShootTimer()
+        public void ResetShootTimer(Random random)
         {
-            ShootTimer = ShootCooldown;
+            // Add some randomness to shooting intervals
+            var variance = ShootCooldown * 0.3f; // ±30% variance
+            ShootTimer = ShootCooldown + (float)(random.NextDouble() * 2 - 1) * variance;
         }
     }
 }
