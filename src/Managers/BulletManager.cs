@@ -8,6 +8,8 @@ namespace Shooter.Managers
 {
     public class BulletManager
     {
+        private const int MaxPlayerBullets = 5;
+        
         private List<Bullet> _playerBullets;
         private List<Bullet> _enemyBullets;
         private Texture2D _playerBulletTexture;
@@ -34,7 +36,7 @@ namespace Shooter.Managers
         {
             // Prevent too many bullets on screen
             var activeBullets = _playerBullets.Count(b => b.IsActive);
-            if (activeBullets < 5)
+            if (activeBullets < MaxPlayerBullets)
             {
                 _playerBullets.Add(new Bullet(_playerBulletTexture, position, true, _bounds));
             }

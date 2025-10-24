@@ -17,6 +17,7 @@ namespace Shooter
         private EnemyManager _enemyManager;
         private BulletManager _bulletManager;
         private BackgroundManager _backgroundManager;
+        private CollisionManager _collisionManager;
         private Texture2D _starTexture;
         
         private SpriteFont _font;
@@ -27,10 +28,14 @@ namespace Shooter
         // Fixed resolution for gameplay
         private const int GameWidth = 1920;
         private const int GameHeight = 1080;
+        private const int PlayerSpawnY = 130; // Distance from bottom of screen
+        private const int InitialLives = 3;
+        
         private RenderTarget2D _renderTarget;
         private Rectangle _gameBounds;
         private bool _fullscreen;
         private KeyboardState _previousKeyboardState;
+        private Vector2 _playerSpawnPosition;
 
         public Game1()
         {
@@ -56,6 +61,7 @@ namespace Shooter
             // Create render target for fixed resolution gameplay
             _renderTarget = new RenderTarget2D(GraphicsDevice, GameWidth, GameHeight);
             _gameBounds = new Rectangle(0, 0, GameWidth, GameHeight);
+            _playerSpawnPosition = new Vector2(GameWidth / 2, GameHeight - PlayerSpawnY);
             
             _font = Content.Load<SpriteFont>("font");
             
@@ -67,24 +73,23 @@ namespace Shooter
             
             _player = new Player(Content.Load<Texture2D>("player"), _gameBounds)
             {
-                Position = new Vector2(GameWidth / 2, GameHeight - 130)
+                Position = _playerSpawnPosition
             };
             
             _enemyManager = new EnemyManager(Content, _gameBounds);
             _bulletManager = new BulletManager(_gameBounds);
             _bulletManager.LoadContent(Content);
             
+            _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player);
+            _collisionManager.OnEnemyHit += OnEnemyHit;
+            _collisionManager.OnPlayerHit += OnPlayerHit;
+            
             _score = 0;
-            _lives = 3;
+            _lives = InitialLives;
             _gameOver = false;
             
-            _previousKeyboardState = SubscribeToKeyboard();
+            _previousKeyboardState = Keyboard.GetState();
             _fullscreen = false;
-        }
-        
-        private KeyboardState SubscribeToKeyboard()
-        {
-            return Keyboard.GetState();
         }
 
         protected override void Update(GameTime gameTime)
@@ -112,74 +117,67 @@ namespace Shooter
                 _bulletManager.Update(gameTime);
                 
                 // Check for shooting (keyboard or gamepad)
-                if (keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.A))
+                if (IsShooting(keyboardState, gamePadState))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
                 }
                 
                 // Collision detection
-                CheckCollisions();
+                _collisionManager.Update();
                 
-                // Check if player is hit
+                // Check if player hits enemy (enemy collision with player)
                 if (_enemyManager.CheckPlayerCollision(_player.Bounds))
                 {
-                    _lives--;
-                    if (_lives <= 0)
-                    {
-                        _gameOver = true;
-                    }
-                    else
-                    {
-                        _player.Position = new Vector2(GameWidth / 2, GameHeight - 130);
-                    }
+                    OnPlayerHit();
                 }
             }
             else
             {
                 if (keyboardState.IsKeyDown(Keys.R))
                 {
-                    _score = 0;
-                    _lives = 3;
-                    _gameOver = false;
-                    _player.Position = new Vector2(GameWidth / 2, GameHeight - 130);
-                    _enemyManager.Reset();
-                    _bulletManager.Reset();
+                    RestartGame();
                 }
             }
 
             base.Update(gameTime);
         }
 
-        private void CheckCollisions()
+        private bool IsShooting(KeyboardState keyboardState, GamePadState gamePadState)
         {
-            // Player bullets hitting enemies
-            foreach (var bullet in _bulletManager.PlayerBullets)
+            return keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.A);
+        }
+        
+        private void OnEnemyHit(int scoreValue)
+        {
+            _score += scoreValue;
+        }
+        
+        private void OnPlayerHit()
+        {
+            _lives--;
+            if (_lives <= 0)
             {
-                var hitEnemy = _enemyManager.CheckBulletCollision(bullet.Bounds);
-                if (hitEnemy != null)
-                {
-                    _score += hitEnemy.ScoreValue;
-                    bullet.IsActive = false;
-                }
+                _gameOver = true;
             }
-            
-            // Enemy bullets hitting player
-            foreach (var bullet in _bulletManager.EnemyBullets)
+            else
             {
-                if (bullet.Bounds.Intersects(_player.Bounds))
-                {
-                    _lives--;
-                    bullet.IsActive = false;
-                    if (_lives <= 0)
-                    {
-                        _gameOver = true;
-                    }
-                    else
-                    {
-                        _player.Position = new Vector2(512, 650);
-                    }
-                }
+                ResetPlayerPosition();
             }
+        }
+        
+        private void ResetPlayerPosition()
+        {
+            _player.Position = _playerSpawnPosition;
+        }
+        
+        private void RestartGame()
+        {
+            _score = 0;
+            _lives = InitialLives;
+            _gameOver = false;
+            ResetPlayerPosition();
+            _enemyManager.Reset();
+            _bulletManager.Reset();
         }
 
         private void ToggleFullscreen()

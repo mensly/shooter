@@ -6,11 +6,12 @@ namespace Shooter.Entities
 {
     public class Player : Sprite
     {
+        private const float PlayerSpeed = 600f;
         private readonly Rectangle _screenBounds;
         
         public Player(Texture2D texture, Rectangle bounds) : base(texture)
         {
-            Speed = 600f; // Increased speed for faster movement
+            Speed = PlayerSpeed;
             _screenBounds = bounds;
         }
 

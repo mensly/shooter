@@ -10,12 +10,13 @@ namespace Shooter.Managers
 {
     public class EnemyManager
     {
+        private const float SpawnCooldown = 2.0f;
+        
         private List<Enemy> _enemies;
         private Texture2D _basicEnemyTexture;
         private Texture2D _fastEnemyTexture;
         private Texture2D _tankEnemyTexture;
         private float _spawnTimer;
-        private float _spawnCooldown = 2.0f;
         private Rectangle _screenBounds;
         private Random _random;
 
@@ -39,7 +40,7 @@ namespace Shooter.Managers
             if (_spawnTimer <= 0)
             {
                 SpawnEnemy();
-                _spawnTimer = _spawnCooldown;
+                _spawnTimer = SpawnCooldown;
             }
             
             foreach (var enemy in _enemies.ToList())

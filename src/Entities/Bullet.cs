@@ -5,6 +5,9 @@ namespace Shooter.Entities
 {
     public class Bullet : Sprite
     {
+        private const float PlayerBulletSpeed = 500f;
+        private const float EnemyBulletSpeed = 300f;
+        
         public bool IsActive { get; set; }
         public bool IsPlayerBullet { get; set; }
         private readonly Rectangle _bounds;
@@ -14,7 +17,7 @@ namespace Shooter.Entities
             Position = position;
             IsPlayerBullet = isPlayerBullet;
             IsActive = true;
-            Speed = isPlayerBullet ? 500f : 300f;
+            Speed = isPlayerBullet ? PlayerBulletSpeed : EnemyBulletSpeed;
             _bounds = bounds;
         }
 
