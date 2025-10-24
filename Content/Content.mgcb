@@ -36,6 +36,21 @@
 /processor:TextureProcessor
 /build:enemy_tank.png
 
+#begin enemy_zigzag.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_zigzag.png
+
+#begin enemy_kamikaze.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_kamikaze.png
+
+#begin enemy_shooter.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_shooter.png
+
 #begin bullet_player.png
 /importer:TextureImporter
 /processor:TextureProcessor

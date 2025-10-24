@@ -10,12 +10,15 @@ namespace Shooter.Managers
 {
     public class EnemyManager
     {
-        private const float SpawnCooldown = 2.0f;
+        private const float SpawnCooldown = 1.2f; // More frequent spawning
         
         private List<Enemy> _enemies;
         private Texture2D _basicEnemyTexture;
         private Texture2D _fastEnemyTexture;
         private Texture2D _tankEnemyTexture;
+        private Texture2D _zigzagEnemyTexture;
+        private Texture2D _kamikazeEnemyTexture;
+        private Texture2D _shooterEnemyTexture;
         private float _spawnTimer;
         private Rectangle _screenBounds;
         private Random _random;
@@ -29,6 +32,9 @@ namespace Shooter.Managers
             _basicEnemyTexture = content.Load<Texture2D>("enemy_basic");
             _fastEnemyTexture = content.Load<Texture2D>("enemy_fast");
             _tankEnemyTexture = content.Load<Texture2D>("enemy_tank");
+            _zigzagEnemyTexture = content.Load<Texture2D>("enemy_zigzag");
+            _kamikazeEnemyTexture = content.Load<Texture2D>("enemy_kamikaze");
+            _shooterEnemyTexture = content.Load<Texture2D>("enemy_shooter");
         }
 
         public void Update(GameTime gameTime)
@@ -45,7 +51,7 @@ namespace Shooter.Managers
             
             foreach (var enemy in _enemies.ToList())
             {
-                enemy.Update(gameTime);
+                enemy.Update(gameTime, _screenBounds);
                 
                 // Remove enemy if off screen
                 if (enemy.Position.Y > _screenBounds.Height + 50)
@@ -58,13 +64,16 @@ namespace Shooter.Managers
         private void SpawnEnemy()
         {
             var randX = _random.Next(100, _screenBounds.Width - 100);
-            var enemyType = (EnemyType)_random.Next(0, 3);
+            var enemyType = (EnemyType)_random.Next(0, 6); // 6 enemy types now
             
             Texture2D texture = enemyType switch
             {
                 EnemyType.Basic => _basicEnemyTexture,
                 EnemyType.Fast => _fastEnemyTexture,
                 EnemyType.Tank => _tankEnemyTexture,
+                EnemyType.Zigzag => _zigzagEnemyTexture,
+                EnemyType.Kamikaze => _kamikazeEnemyTexture,
+                EnemyType.Shooter => _shooterEnemyTexture,
                 _ => _basicEnemyTexture
             };
             

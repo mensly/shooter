@@ -6,10 +6,13 @@ A vertical scrolling shooter game built with MonoGame and C#.
 
 - Player ship with fast movement (WASD/Arrow keys or gamepad)
 - Gamepad support with Xbox controller (thumbstick movement + A button shooting)
-- Three enemy types:
+- Six enemy types with unique behaviors:
   - **Basic Enemy** (Red) - Standard enemy, 10 points
   - **Fast Enemy** (Yellow) - Fast moving enemy, 20 points
   - **Tank Enemy** (Blue) - Slow but sturdy enemy, 50 points
+  - **Zigzag Enemy** (Green) - Moves in zigzag pattern, 25 points
+  - **Kamikaze Enemy** (Orange) - Charges toward player, 15 points
+  - **Shooter Enemy** (Purple) - Fires rapidly, 30 points
 - Shooting mechanics (Space key or gamepad A button)
 - Dark starfield background with scrolling stars
 - Fixed-resolution rendering (1920x1080) with F11 fullscreen toggle
@@ -82,10 +85,13 @@ shooter/
 
 ## Gameplay
 
-Enemies spawn from the top of the screen at regular intervals. Shoot them to earn points:
-- Basic enemies award 10 points
-- Fast enemies award 20 points
-- Tank enemies award 50 points
+Enemies spawn from the top of the screen at regular intervals with increasing frequency. Shoot them to earn points:
+- Basic enemies: 10 points
+- Fast enemies: 20 points
+- Zigzag enemies: 25 points (move side-to-side)
+- Shooter enemies: 30 points (fire rapidly)
+- Kamikaze enemies: 15 points (charge toward player)
+- Tank enemies: 50 points (slow but sturdy)
 
 You have 3 lives. You lose a life when an enemy or enemy bullet collides with your ship. When all lives are lost, the game ends. Press R to restart.
 
