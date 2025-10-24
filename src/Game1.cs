@@ -107,7 +107,6 @@ namespace Shooter
             {
                 ToggleFullscreen();
             }
-            _previousKeyboardState = keyboardState;
             
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || 
                 keyboardState.IsKeyDown(Keys.Escape))
@@ -147,6 +146,8 @@ namespace Shooter
                 }
             }
             
+            // Update previous states at the end of the frame
+            _previousKeyboardState = keyboardState;
             _previousGamePadState = gamePadState;
 
             base.Update(gameTime);

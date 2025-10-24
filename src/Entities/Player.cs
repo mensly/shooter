@@ -54,8 +54,9 @@ namespace Shooter.Entities
 
         public Vector2 GetBulletSpawnPosition()
         {
-            // Spawn bullets well in front of the player (above, since player moves up on screen)
-            return new Vector2(Position.X, Position.Y - Texture.Height);
+            // Spawn bullets above the player sprite (in the direction bullets travel)
+            // Position.Y is the center of the sprite, so go up by half the texture height plus some offset
+            return new Vector2(Position.X, Position.Y - Texture.Height / 2 - 10);
         }
     }
 }
