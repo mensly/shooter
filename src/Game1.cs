@@ -75,6 +75,7 @@ namespace Shooter
             {
                 var keyboardState = Keyboard.GetState();
                 
+                _backgroundManager.Update(gameTime);
                 _player.Update(gameTime, keyboardState);
                 _enemyManager.Update(gameTime);
                 _bulletManager.Update(gameTime);
@@ -152,7 +153,7 @@ namespace Shooter
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             _spriteBatch.Begin();
             
