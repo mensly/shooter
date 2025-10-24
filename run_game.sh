@@ -7,7 +7,7 @@ mgcb Content/Content.mgcb /clean /build > /dev/null 2>&1
 # Copy .xnb files to output directory
 echo "Copying content files..."
 mkdir -p bin/Debug/net8.0/Content
-cp Content/bin/DesktopGL/Content/*.xnb bin/Debug/net8.0/Content/ 2>/dev/null || true
+cp build/Content/bin/DesktopGL/Content/*.xnb bin/Debug/net8.0/Content/ 2>/dev/null || true
 
 # Build the game
 echo "Building game..."

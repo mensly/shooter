@@ -1,8 +1,8 @@
 #----------------------------- Global Settings -----------------------------#
 
 #begin GlobalSettings
-/outputDir:bin/$(Platform)
-/intermediateDir:obj/$(Platform)
+/outputDir:../build/Content/bin/$(Platform)
+/intermediateDir:../build/Content/obj/$(Platform)
 /platform:DesktopGL
 /config:
 /profile:Reach
