@@ -1,17 +1,15 @@
 #!/bin/bash
 
+# Determine build configuration (default to Debug)
+CONFIG="${1:-Debug}"
+
 # Build content first
 echo "Building content..."
 mgcb Content/Content.mgcb /clean /build > /dev/null 2>&1
 
-# Copy .xnb files to output directory
-echo "Copying content files..."
-mkdir -p bin/Debug/net8.0/Content
-cp build/Content/bin/DesktopGL/Content/*.xnb bin/Debug/net8.0/Content/ 2>/dev/null || true
-
 # Build the game
-echo "Building game..."
-dotnet build
+echo "Building game (configuration: $CONFIG)..."
+dotnet build --configuration "$CONFIG"
 
 # Check if build was successful
 if [ $? -ne 0 ]; then
@@ -19,8 +17,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Copy .xnb files to output directory
+echo "Copying content files..."
+mkdir -p "bin/$CONFIG/net8.0/Content"
+cp build/Content/bin/DesktopGL/Content/*.xnb "bin/$CONFIG/net8.0/Content/" 2>/dev/null || true
+
 # Determine the output directory
-OUTPUT_DIR="bin/Debug/net8.0"
+OUTPUT_DIR="bin/$CONFIG/net8.0"
 
 # Get the full path to the output directory
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

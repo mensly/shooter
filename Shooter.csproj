@@ -16,5 +16,12 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
 
+  <Target Name="CopyContent" AfterTargets="Build">
+    <ItemGroup>
+      <ContentFiles Include="build/Content/bin/DesktopGL/Content/*.xnb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ContentFiles)" DestinationFolder="$(OutputPath)Content\" />
+  </Target>
+
 </Project>
 

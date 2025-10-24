@@ -52,6 +52,13 @@ namespace Shooter
             // Set larger window size (maintaining 16:9 aspect ratio)
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
+            
+#if !DEBUG
+            // Start in fullscreen for release builds
+            _graphics.IsFullScreen = true;
+            _fullscreen = true;
+#endif
+            
             _graphics.ApplyChanges();
             
             base.Initialize();
