@@ -37,6 +37,7 @@ namespace Shooter
         private Rectangle _gameBounds;
         private bool _fullscreen;
         private KeyboardState _previousKeyboardState;
+        private GamePadState _previousGamePadState;
         private Vector2 _playerSpawnPosition;
 
         public Game1()
@@ -93,6 +94,7 @@ namespace Shooter
             _gameOver = false;
             
             _previousKeyboardState = Keyboard.GetState();
+            _previousGamePadState = GamePad.GetState(PlayerIndex.One);
             _fullscreen = false;
         }
 
@@ -120,11 +122,13 @@ namespace Shooter
                 _enemyManager.Update(gameTime);
                 _bulletManager.Update(gameTime);
                 
-                // Check for shooting (keyboard or gamepad)
-                if (IsShooting(keyboardState, gamePadState))
+                // Check for shooting (only on button press, not while held)
+                if (IsShooting(keyboardState, gamePadState, _previousKeyboardState, _previousGamePadState))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
                 }
+                
+                _previousGamePadState = gamePadState;
                 
                 // Collision detection
                 _collisionManager.Update();
@@ -146,9 +150,18 @@ namespace Shooter
             base.Update(gameTime);
         }
 
-        private bool IsShooting(KeyboardState keyboardState, GamePadState gamePadState)
+        private bool IsShooting(KeyboardState keyboardState, GamePadState gamePadState, 
+            KeyboardState previousKeyboardState, GamePadState previousGamePadState)
         {
-            return keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.A);
+            // Only shoot when button transitions from not pressed to pressed
+            bool spacePressed = keyboardState.IsKeyDown(Keys.Space) && !previousKeyboardState.IsKeyDown(Keys.Space);
+            bool buttonAPressed = gamePadState.IsButtonDown(Buttons.A) && !previousGamePadState.IsButtonDown(Buttons.A);
+            
+            // Trigger buttons (check if pressed beyond threshold)
+            bool leftTriggerPressed = gamePadState.Triggers.Left > 0.5f && previousGamePadState.Triggers.Left <= 0.5f;
+            bool rightTriggerPressed = gamePadState.Triggers.Right > 0.5f && previousGamePadState.Triggers.Right <= 0.5f;
+            
+            return spacePressed || buttonAPressed || leftTriggerPressed || rightTriggerPressed;
         }
         
         private void OnEnemyHit(int scoreValue)
