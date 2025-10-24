@@ -1,0 +1,22 @@
+# Build results
+bin/
+obj/
+
+# Content pipeline output
+Content/bin/
+Content/obj/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# MonoGame
+*.mgcb.bin
+
+# OS
+.DS_Store
+Thumbs.db
+

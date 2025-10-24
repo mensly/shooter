@@ -1,0 +1,48 @@
+#----------------------------- Global Settings -----------------------------#
+
+#begin GlobalSettings
+/outputDir:bin/$(Platform)
+/intermediateDir:obj/$(Platform)
+/platform:DesktopGL
+/config:
+/profile:Reach
+/compress:False
+#end GlobalSettings
+
+#-------------------------------- References --------------------------------#
+
+#begin font.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:font.spritefont
+
+#begin player.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:player.png
+
+#begin enemy_basic.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_basic.png
+
+#begin enemy_fast.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_fast.png
+
+#begin enemy_tank.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:enemy_tank.png
+
+#begin bullet_player.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:bullet_player.png
+
+#begin bullet_enemy.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/build:bullet_enemy.png
+
