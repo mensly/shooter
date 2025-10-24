@@ -17,11 +17,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Copy .xnb files to output directory
-echo "Copying content files..."
-mkdir -p "bin/$CONFIG/net8.0/Content"
-cp build/Content/bin/DesktopGL/Content/*.xnb "bin/$CONFIG/net8.0/Content/" 2>/dev/null || true
-
 # Determine the output directory
 OUTPUT_DIR="bin/$CONFIG/net8.0"
 
