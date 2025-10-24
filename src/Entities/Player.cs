@@ -10,15 +10,16 @@ namespace Shooter.Entities
         
         public Player(Texture2D texture, Rectangle bounds) : base(texture)
         {
-            Speed = 300f;
+            Speed = 600f; // Increased speed for faster movement
             _screenBounds = bounds;
         }
 
-        public void Update(GameTime gameTime, KeyboardState keyboardState)
+        public void Update(GameTime gameTime, KeyboardState keyboardState, GamePadState gamePadState)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var velocity = Vector2.Zero;
 
+            // Keyboard input
             if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
             {
                 velocity.X -= Speed;
@@ -35,6 +36,11 @@ namespace Shooter.Entities
             {
                 velocity.Y += Speed;
             }
+
+            // Gamepad input (Left Thumbstick)
+            Vector2 thumbstick = gamePadState.ThumbSticks.Left;
+            velocity.X += thumbstick.X * Speed;
+            velocity.Y -= thumbstick.Y * Speed; // Invert Y axis for gamepad
 
             Position += velocity * deltaTime;
 

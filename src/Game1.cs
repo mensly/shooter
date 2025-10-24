@@ -104,13 +104,15 @@ namespace Shooter
 
             if (!_gameOver)
             {
+                var gamePadState = GamePad.GetState(PlayerIndex.One);
+                
                 _backgroundManager.Update(gameTime);
-                _player.Update(gameTime, keyboardState);
+                _player.Update(gameTime, keyboardState, gamePadState);
                 _enemyManager.Update(gameTime);
                 _bulletManager.Update(gameTime);
                 
-                // Check for shooting
-                if (keyboardState.IsKeyDown(Keys.Space))
+                // Check for shooting (keyboard or gamepad)
+                if (keyboardState.IsKeyDown(Keys.Space) || gamePadState.IsButtonDown(Buttons.A))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
                 }

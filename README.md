@@ -4,12 +4,15 @@ A vertical scrolling shooter game built with MonoGame and C#.
 
 ## Features
 
-- Player ship with WASD/Arrow key movement
+- Player ship with fast movement (WASD/Arrow keys or gamepad)
+- Gamepad support with Xbox controller (thumbstick movement + A button shooting)
 - Three enemy types:
   - **Basic Enemy** (Red) - Standard enemy, 10 points
   - **Fast Enemy** (Yellow) - Fast moving enemy, 20 points
   - **Tank Enemy** (Blue) - Slow but sturdy enemy, 50 points
-- Shooting mechanics with Space key
+- Shooting mechanics (Space key or gamepad A button)
+- Dark starfield background with scrolling stars
+- Fixed-resolution rendering (1920x1080) with F11 fullscreen toggle
 - Collision detection
 - Score system
 - Lives system (3 lives)
@@ -46,10 +49,17 @@ dotnet run
 
 ## Controls
 
+### Keyboard
 - **Arrow Keys** or **WASD** - Move player ship
 - **Space** - Shoot bullets
 - **Escape** - Exit game
 - **R** - Restart game (when game over)
+- **F11** - Toggle fullscreen
+
+### Gamepad
+- **Left Thumbstick** - Move player ship
+- **A Button** - Shoot bullets
+- **Back Button** - Exit game
 
 ## Project Structure
 
