@@ -41,6 +41,12 @@ namespace Shooter
         private KeyboardState _previousKeyboardState;
         private GamePadState _previousGamePadState;
         private Vector2 _playerSpawnPosition;
+        
+        // Input detection for adaptive UI
+        private bool _usingKeyboard;
+        private bool _usingGamepad;
+        private float _keyboardInputTime;
+        private float _gamepadInputTime;
 
         public Game1()
         {
@@ -109,6 +115,12 @@ namespace Shooter
             _previousKeyboardState = Keyboard.GetState();
             _previousGamePadState = GamePad.GetState(PlayerIndex.One);
             _fullscreen = false;
+            
+            // Initialize input detection
+            _usingKeyboard = false;
+            _usingGamepad = false;
+            _keyboardInputTime = 0f;
+            _gamepadInputTime = 0f;
         }
 
         protected override void Update(GameTime gameTime)
@@ -133,6 +145,9 @@ namespace Shooter
                 _player.Update(gameTime, keyboardState, gamePadState);
                 _enemyManager.Update(gameTime);
                 _bulletManager.Update(gameTime);
+                
+                // Track input usage for adaptive UI
+                TrackInputUsage(keyboardState, gamePadState, gameTime);
                 
                 // Check for shooting (only on button press, not while held)
                 if (IsShooting(keyboardState, gamePadState, _previousKeyboardState, _previousGamePadState))
@@ -167,6 +182,35 @@ namespace Shooter
             base.Update(gameTime);
         }
 
+        private void TrackInputUsage(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
+        {
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            
+            // Check for keyboard input (movement or shooting)
+            bool keyboardInput = keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.Right) || 
+                                keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.D) ||
+                                keyboardState.IsKeyDown(Keys.Space);
+            
+            // Check for gamepad input (movement or shooting)
+            bool gamepadInput = gamePadState.ThumbSticks.Left.X != 0 || gamePadState.ThumbSticks.Left.Y != 0 ||
+                               gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.DPad.Right == ButtonState.Pressed ||
+                               gamePadState.IsButtonDown(Buttons.A) || gamePadState.Triggers.Left > 0.1f || 
+                               gamePadState.Triggers.Right > 0.1f;
+            
+            // Track input time
+            if (keyboardInput)
+            {
+                _keyboardInputTime += deltaTime;
+                _usingKeyboard = true;
+            }
+            
+            if (gamepadInput)
+            {
+                _gamepadInputTime += deltaTime;
+                _usingGamepad = true;
+            }
+        }
+        
         private bool IsShooting(KeyboardState keyboardState, GamePadState gamePadState, 
             KeyboardState previousKeyboardState, GamePadState previousGamePadState)
         {
@@ -212,6 +256,12 @@ namespace Shooter
             ResetPlayerPosition();
             _enemyManager.Reset();
             _bulletManager.Reset();
+            
+            // Reset input detection for new game
+            _usingKeyboard = false;
+            _usingGamepad = false;
+            _keyboardInputTime = 0f;
+            _gamepadInputTime = 0f;
         }
 
         private void ToggleFullscreen()
@@ -273,7 +323,21 @@ namespace Shooter
                 // Game over screen with centered score
                 var gameOverText = "GAME OVER";
                 var scoreText = $"Final Score: {_score}";
-                var restartText = "Press R or Start to Restart";
+                
+                // Adaptive restart message based on input detection
+                string restartText;
+                if (_usingGamepad && !_usingKeyboard)
+                {
+                    restartText = "Press Start to Restart";
+                }
+                else if (_usingKeyboard && !_usingGamepad)
+                {
+                    restartText = "Press R to Restart";
+                }
+                else
+                {
+                    restartText = "Press R or Start to Restart";
+                }
                 
                 var gameOverSize = _font.MeasureString(gameOverText);
                 var scoreSize = _fontLarge.MeasureString(scoreText);
