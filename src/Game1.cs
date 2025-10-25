@@ -65,6 +65,7 @@ namespace Shooter
             // Start in fullscreen for release builds
             _graphics.IsFullScreen = true;
             _fullscreen = true;
+            _graphics.HardwareModeSwitch = true;
 #endif
             
             _graphics.ApplyChanges();
@@ -274,6 +275,7 @@ namespace Shooter
                 _graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
                 _graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
                 _graphics.IsFullScreen = true;
+                _graphics.HardwareModeSwitch = true;
             }
             else
             {
