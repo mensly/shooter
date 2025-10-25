@@ -178,6 +178,11 @@ namespace Shooter.Managers
             }
         }
 
+        public List<Enemy> GetActiveEnemies()
+        {
+            return _enemies; // All enemies in the list are active (inactive ones are removed)
+        }
+
         public void Reset()
         {
             _enemies.Clear();
