@@ -20,14 +20,11 @@ namespace Shooter
         private BackgroundManager _backgroundManager;
         private CollisionManager _collisionManager;
         private SoundManager _soundManager;
+        private InputManager _inputManager;
+        private UIManager _uiManager;
+        private GameStateManager _gameStateManager;
+        private RespawnManager _respawnManager;
         private Texture2D _starTexture;
-        private Texture2D _heartTexture;
-        
-        private SpriteFont _font;
-        private SpriteFont _fontLarge;
-        private int _score;
-        private int _lives;
-        private bool _gameOver;
         
         // Fixed resolution for gameplay
         private const int GameWidth = 1920;
@@ -38,15 +35,7 @@ namespace Shooter
         private RenderTarget2D _renderTarget;
         private Rectangle _gameBounds;
         private bool _fullscreen;
-        private KeyboardState _previousKeyboardState;
-        private GamePadState _previousGamePadState;
         private Vector2 _playerSpawnPosition;
-        
-        // Input detection for adaptive UI
-        private bool _usingKeyboard;
-        private bool _usingGamepad;
-        private float _keyboardInputTime;
-        private float _gamepadInputTime;
 
         public Game1()
         {
@@ -82,9 +71,10 @@ namespace Shooter
             _gameBounds = new Rectangle(0, 0, GameWidth, GameHeight);
             _playerSpawnPosition = new Vector2(GameWidth / 2, GameHeight - PlayerSpawnY);
             
-            _font = Content.Load<SpriteFont>("font");
-            _fontLarge = Content.Load<SpriteFont>("font_large");
-            _heartTexture = Content.Load<Texture2D>("heart");
+            // Initialize managers
+            _inputManager = new InputManager();
+            _uiManager = new UIManager(_inputManager);
+            _uiManager.LoadContent(Content);
             
             // Initialize sound manager
             _soundManager = new SoundManager();
@@ -106,238 +96,68 @@ namespace Shooter
             _enemyManager = new EnemyManager(Content, _gameBounds, _bulletManager, _soundManager);
             
             _collisionManager = new CollisionManager(_bulletManager, _enemyManager, _player, _soundManager);
-            _collisionManager.OnEnemyHit += OnEnemyHit;
-            _collisionManager.OnPlayerHit += OnPlayerHit;
+            _respawnManager = new RespawnManager(_playerSpawnPosition, _player, _enemyManager, _bulletManager);
             
-            _score = 0;
-            _lives = InitialLives;
-            _gameOver = false;
+            _gameStateManager = new GameStateManager(_player, _enemyManager, _bulletManager, 
+                _collisionManager, _respawnManager, _inputManager);
             
-            _previousKeyboardState = Keyboard.GetState();
-            _previousGamePadState = GamePad.GetState(PlayerIndex.One);
+            _collisionManager.OnEnemyHit += _gameStateManager.OnEnemyHit;
+            _collisionManager.OnPlayerHit += _gameStateManager.OnPlayerHit;
+            
             _fullscreen = false;
-            
-            // Initialize input detection
-            _usingKeyboard = false;
-            _usingGamepad = false;
-            _keyboardInputTime = 0f;
-            _gamepadInputTime = 0f;
         }
 
         protected override void Update(GameTime gameTime)
         {
             var keyboardState = Keyboard.GetState();
+            var gamePadState = GamePad.GetState(PlayerIndex.One);
             
-            // Handle F11 fullscreen toggle
-            if (keyboardState.IsKeyDown(Keys.F11) && !_previousKeyboardState.IsKeyDown(Keys.F11))
+            // Update input manager
+            _inputManager.Update(gameTime);
+            
+            // Handle input
+            if (_inputManager.IsFullscreenTogglePressed(keyboardState))
             {
                 ToggleFullscreen();
             }
             
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || 
-                keyboardState.IsKeyDown(Keys.Escape))
+            if (_inputManager.IsExitPressed(keyboardState, gamePadState))
+            {
                 Exit();
-
-            var gamePadState = GamePad.GetState(PlayerIndex.One);
+            }
             
-            if (!_gameOver)
+            if (!_gameStateManager.GameOver)
             {
                 _backgroundManager.Update(gameTime);
                 _player.Update(gameTime, keyboardState, gamePadState);
                 _enemyManager.Update(gameTime);
                 _bulletManager.Update(gameTime);
                 
-                // Track input usage for adaptive UI
-                TrackInputUsage(keyboardState, gamePadState, gameTime);
-                
-                // Check for shooting (only on button press, not while held)
-                if (IsShooting(keyboardState, gamePadState, _previousKeyboardState, _previousGamePadState))
+                // Check for shooting
+                if (_inputManager.IsShooting(keyboardState, gamePadState))
                 {
                     _bulletManager.AddPlayerBullet(_player.GetBulletSpawnPosition());
                     _soundManager.PlayShoot();
                 }
                 
-                // Collision detection
-                _collisionManager.Update();
-                
-                // Check if player hits enemy (enemy collision with player)
-                if (_enemyManager.CheckPlayerCollision(_player.Bounds))
-                {
-                    OnPlayerHit();
-                }
+                // Update game state
+                _gameStateManager.Update(gameTime);
             }
             else
             {
-                // Check for restart (keyboard or gamepad)
-                if (keyboardState.IsKeyDown(Keys.R) || 
-                    (gamePadState.IsButtonDown(Buttons.Start) && !_previousGamePadState.IsButtonDown(Buttons.Start)))
+                // Check for restart
+                if (_inputManager.IsRestartPressed(keyboardState, gamePadState))
                 {
-                    RestartGame();
+                    _gameStateManager.RestartGame();
                 }
             }
             
-            // Update previous states at the end of the frame
-            _previousKeyboardState = keyboardState;
-            _previousGamePadState = gamePadState;
+            // Update input states at the end of the frame
+            _inputManager.EndFrame();
 
             base.Update(gameTime);
         }
 
-        private void TrackInputUsage(KeyboardState keyboardState, GamePadState gamePadState, GameTime gameTime)
-        {
-            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            
-            // Check for keyboard input (movement or shooting)
-            bool keyboardInput = keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.Right) || 
-                                keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.D) ||
-                                keyboardState.IsKeyDown(Keys.Space);
-            
-            // Check for gamepad input (movement or shooting)
-            bool gamepadInput = gamePadState.ThumbSticks.Left.X != 0 || gamePadState.ThumbSticks.Left.Y != 0 ||
-                               gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.DPad.Right == ButtonState.Pressed ||
-                               gamePadState.IsButtonDown(Buttons.A) || gamePadState.Triggers.Left > 0.1f || 
-                               gamePadState.Triggers.Right > 0.1f;
-            
-            // Track input time
-            if (keyboardInput)
-            {
-                _keyboardInputTime += deltaTime;
-                _usingKeyboard = true;
-            }
-            
-            if (gamepadInput)
-            {
-                _gamepadInputTime += deltaTime;
-                _usingGamepad = true;
-            }
-        }
-        
-        private bool IsShooting(KeyboardState keyboardState, GamePadState gamePadState, 
-            KeyboardState previousKeyboardState, GamePadState previousGamePadState)
-        {
-            // Only shoot when button transitions from not pressed to pressed
-            bool spacePressed = keyboardState.IsKeyDown(Keys.Space) && !previousKeyboardState.IsKeyDown(Keys.Space);
-            bool buttonAPressed = gamePadState.IsButtonDown(Buttons.A) && !previousGamePadState.IsButtonDown(Buttons.A);
-            
-            // Trigger buttons (check if pressed beyond threshold)
-            bool leftTriggerPressed = gamePadState.Triggers.Left > 0.5f && previousGamePadState.Triggers.Left <= 0.5f;
-            bool rightTriggerPressed = gamePadState.Triggers.Right > 0.5f && previousGamePadState.Triggers.Right <= 0.5f;
-            
-            return spacePressed || buttonAPressed || leftTriggerPressed || rightTriggerPressed;
-        }
-        
-        private void OnEnemyHit(int scoreValue)
-        {
-            _score += scoreValue;
-        }
-        
-        private void OnPlayerHit()
-        {
-            _lives--;
-            if (_lives <= 0)
-            {
-                _gameOver = true;
-            }
-            else
-            {
-                ResetPlayerPosition();
-            }
-        }
-        
-        private void ResetPlayerPosition()
-        {
-            _player.Position = FindSafeSpawnPosition();
-        }
-        
-        private Vector2 FindSafeSpawnPosition()
-        {
-            const int maxAttempts = 20;
-            const float spawnRadius = 100f; // How far to search from original spawn
-            const float minDistanceFromEnemies = 100f; // Minimum distance from enemies
-            const float minDistanceFromBullets = 100f; // Minimum distance from bullets
-            
-            Vector2 originalSpawn = _playerSpawnPosition;
-            Random random = new Random();
-            
-            // Try the original spawn position first
-            if (IsPositionSafe(originalSpawn, minDistanceFromEnemies, minDistanceFromBullets))
-            {
-                return originalSpawn;
-            }
-            
-            // Try random positions around the original spawn
-            for (int attempt = 0; attempt < maxAttempts; attempt++)
-            {
-                // Generate a random position within spawn radius
-                float angle = (float)(random.NextDouble() * Math.PI * 2);
-                float distance = (float)(random.NextDouble() * spawnRadius);
-                
-                Vector2 offset = new Vector2(
-                    (float)Math.Cos(angle) * distance,
-                    (float)Math.Sin(angle) * distance
-                );
-                
-                Vector2 candidatePosition = originalSpawn + offset;
-                
-                // Keep position within screen bounds
-                candidatePosition.X = MathHelper.Clamp(candidatePosition.X, 
-                    _player.Texture.Width / 2, GameWidth - _player.Texture.Width / 2);
-                candidatePosition.Y = MathHelper.Clamp(candidatePosition.Y, 
-                    _player.Texture.Height / 2, GameHeight - _player.Texture.Height / 2);
-                
-                if (IsPositionSafe(candidatePosition, minDistanceFromEnemies, minDistanceFromBullets))
-                {
-                    return candidatePosition;
-                }
-            }
-            
-            // If no safe position found, return original spawn (better than nothing)
-            return originalSpawn;
-        }
-        
-        private bool IsPositionSafe(Vector2 position, float minDistanceFromEnemies, float minDistanceFromBullets)
-        {
-            // Check distance from enemies
-            foreach (var enemy in _enemyManager.GetActiveEnemies())
-            {
-                float distance = Vector2.Distance(position, enemy.Position);
-                if (distance < minDistanceFromEnemies)
-                {
-                    return false;
-                }
-            }
-            
-            // Check distance from enemy bullets
-            foreach (var bullet in _bulletManager.EnemyBullets)
-            {
-                if (bullet.IsActive)
-                {
-                    float distance = Vector2.Distance(position, bullet.Position);
-                    if (distance < minDistanceFromBullets)
-                    {
-                        return false;
-                    }
-                }
-            }
-            
-            return true;
-        }
-        
-        private void RestartGame()
-        {
-            _score = 0;
-            _lives = InitialLives;
-            _gameOver = false;
-            ResetPlayerPosition();
-            _enemyManager.Reset();
-            _bulletManager.Reset();
-            
-            // Reset input detection for new game
-            _usingKeyboard = false;
-            _usingGamepad = false;
-            _keyboardInputTime = 0f;
-            _gamepadInputTime = 0f;
-        }
 
         private void ToggleFullscreen()
         {
@@ -371,68 +191,19 @@ namespace Shooter
             
             _backgroundManager.DrawStars(_spriteBatch, _starTexture);
             
-            if (!_gameOver)
+            if (!_gameStateManager.GameOver)
             {
                 _player.Draw(_spriteBatch);
                 _enemyManager.Draw(_spriteBatch);
                 _bulletManager.Draw(_spriteBatch);
-            }
-            
-            // UI (render to game resolution)
-            if (!_gameOver)
-            {
-                // Score with large font (during gameplay)
-                _spriteBatch.DrawString(_fontLarge, _score.ToString(), new Vector2(20, 20), Color.White);
                 
-                // Lives with heart graphics
-                var heartSize = 40;
-                var livesY = 100; // Increased gap between score and lives
-                for (int i = 0; i < _lives; i++)
-                {
-                    _spriteBatch.Draw(_heartTexture, 
-                        new Rectangle(20 + i * (heartSize + 10), livesY, heartSize, heartSize), 
-                        Color.White);
-                }
+                // Draw game UI
+                _uiManager.DrawGameUI(_spriteBatch, _gameStateManager.Score, _gameStateManager.Lives);
             }
             else
             {
-                // Game over screen with centered score
-                var gameOverText = "GAME OVER";
-                var scoreText = $"Final Score: {_score}";
-                
-                // Adaptive restart message based on input detection
-                string restartText;
-                if (_usingGamepad && !_usingKeyboard)
-                {
-                    restartText = "Press Start to Restart";
-                }
-                else if (_usingKeyboard && !_usingGamepad)
-                {
-                    restartText = "Press R to Restart";
-                }
-                else
-                {
-                    restartText = "Press R or Start to Restart";
-                }
-                
-                var gameOverSize = _font.MeasureString(gameOverText);
-                var scoreSize = _fontLarge.MeasureString(scoreText);
-                var restartSize = _font.MeasureString(restartText);
-                
-                // Game Over text
-                _spriteBatch.DrawString(_font, gameOverText, 
-                    new Vector2(GameWidth / 2 - gameOverSize.X / 2, 
-                    GameHeight / 2 - 100), Color.Red);
-                
-                // Final Score with large font, centered
-                _spriteBatch.DrawString(_fontLarge, scoreText, 
-                    new Vector2(GameWidth / 2 - scoreSize.X / 2, 
-                    GameHeight / 2 - 20), Color.White);
-                
-                // Restart text
-                _spriteBatch.DrawString(_font, restartText, 
-                    new Vector2(GameWidth / 2 - restartSize.X / 2, 
-                    GameHeight / 2 + 80), Color.Yellow);
+                // Draw game over UI
+                _uiManager.DrawGameOverUI(_spriteBatch, _gameStateManager.Score);
             }
             
             _spriteBatch.End();
