@@ -26,10 +26,16 @@ namespace Shooter.Managers
             _heartTexture = content.Load<Texture2D>("heart");
         }
         
-        public void DrawGameUI(SpriteBatch spriteBatch, int score, int lives)
+        public void DrawGameUI(SpriteBatch spriteBatch, int score, int lives, int highScore)
         {
             // Score with large font (during gameplay)
             spriteBatch.DrawString(_fontLarge, score.ToString(), new Vector2(20, 20), Color.White);
+            
+            // High Score (smaller, in top right)
+            var highScoreText = $"HIGH: {highScore}";
+            var highScoreSize = _font.MeasureString(highScoreText);
+            spriteBatch.DrawString(_font, highScoreText, 
+                new Vector2(GameWidth - highScoreSize.X - 20, 20), Color.Yellow);
             
             // Lives with heart graphics
             var heartSize = 40;
@@ -42,10 +48,11 @@ namespace Shooter.Managers
             }
         }
         
-        public void DrawGameOverUI(SpriteBatch spriteBatch, int score)
+        public void DrawGameOverUI(SpriteBatch spriteBatch, int score, int highScore)
         {
             var gameOverText = "GAME OVER";
-            var scoreText = $"Final Score: {score}";
+            var scoreText = $"SCORE: {score}";
+            var highScoreText = $"HIGH SCORE: {highScore}";
             
             // Adaptive restart message based on input detection
             string restartText;
@@ -64,22 +71,28 @@ namespace Shooter.Managers
             
             var gameOverSize = _font.MeasureString(gameOverText);
             var scoreSize = _fontLarge.MeasureString(scoreText);
+            var highScoreSize = _font.MeasureString(highScoreText);
             var restartSize = _font.MeasureString(restartText);
             
             // Game Over text
             spriteBatch.DrawString(_font, gameOverText, 
                 new Vector2(GameWidth / 2 - gameOverSize.X / 2, 
-                GameHeight / 2 - 100), Color.Red);
+                GameHeight / 2 - 150), Color.Red);
             
             // Final Score with large font, centered
             spriteBatch.DrawString(_fontLarge, scoreText, 
                 new Vector2(GameWidth / 2 - scoreSize.X / 2, 
-                GameHeight / 2 - 20), Color.White);
+                GameHeight / 2 - 80), Color.White);
+            
+            // High Score
+            spriteBatch.DrawString(_font, highScoreText, 
+                new Vector2(GameWidth / 2 - highScoreSize.X / 2, 
+                GameHeight / 2 + 10), Color.Yellow);
             
             // Restart text
             spriteBatch.DrawString(_font, restartText, 
                 new Vector2(GameWidth / 2 - restartSize.X / 2, 
-                GameHeight / 2 + 80), Color.Yellow);
+                GameHeight / 2 + 110), Color.Yellow);
         }
     }
 }

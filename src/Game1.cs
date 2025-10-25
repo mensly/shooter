@@ -198,12 +198,13 @@ namespace Shooter
                 _bulletManager.Draw(_spriteBatch);
                 
                 // Draw game UI
-                _uiManager.DrawGameUI(_spriteBatch, _gameStateManager.Score, _gameStateManager.Lives);
+                _uiManager.DrawGameUI(_spriteBatch, _gameStateManager.Score, _gameStateManager.Lives, _gameStateManager.HighScore);
             }
             else
             {
                 // Draw game over UI
-                _uiManager.DrawGameOverUI(_spriteBatch, _gameStateManager.Score);
+                _uiManager.DrawGameOverUI(_spriteBatch, _gameStateManager.Score, 
+                    _gameStateManager.HighScore);
             }
             
             _spriteBatch.End();

@@ -18,10 +18,12 @@ namespace Shooter.Managers
         private CollisionManager _collisionManager;
         private RespawnManager _respawnManager;
         private InputManager _inputManager;
+        private HighScoreManager _highScoreManager;
         
         public int Score => _score;
         public int Lives => _lives;
         public bool GameOver => _gameOver;
+        public int HighScore => _highScoreManager.CurrentHighScore;
         
         public GameStateManager(Player player, EnemyManager enemyManager, BulletManager bulletManager, 
             CollisionManager collisionManager, RespawnManager respawnManager, InputManager inputManager)
@@ -32,6 +34,7 @@ namespace Shooter.Managers
             _collisionManager = collisionManager;
             _respawnManager = respawnManager;
             _inputManager = inputManager;
+            _highScoreManager = new HighScoreManager();
             
             Initialize();
         }
@@ -69,6 +72,8 @@ namespace Shooter.Managers
             if (_lives <= 0)
             {
                 _gameOver = true;
+                // Update high score when game ends
+                _highScoreManager.CheckAndUpdateHighScore(_score);
             }
             else
             {
